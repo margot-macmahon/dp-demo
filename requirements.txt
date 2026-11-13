@@ -1,0 +1,9 @@
+numpy
+scipy
+matplotlib
+iminuit
+uproot
+awkward
+tensorflow
+phasespace
+trimesh
