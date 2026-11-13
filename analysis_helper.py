@@ -298,13 +298,10 @@ def makepolynomfitfluxes_base(
     else:
         return 0
 
-    # fluxin_sav = savgol_filter(fluxin, 7, 3, mode="interp") #added line
     if (np.round(sum(flux[:, 1]), -3)) <= 100000:
-        fluxfiltered = gaussian_filter(
-            fluxin, sigma=smearval
-        )  # 1) #changed fluxin to fluxin_sav
+        fluxfiltered = gaussian_filter(fluxin, sigma=smearval)  # 1)
     else:
-        fluxfiltered = gaussian_filter(fluxin, sigma=non_smearval)  # 0.01)
+        fluxfiltered = gaussian_filter(fluxin, sigma=non_smearval)
     fluxe = []
     fluxx = []
     flux_unfilt = []
@@ -313,7 +310,7 @@ def makepolynomfitfluxes_base(
         fluxe.append(flux[i, 0])
         fluxx.append((fluxfiltered[i]))
         flux_unfilt.append((flux[i, 1]))
-    t, c, k = interpolate.splrep(fluxe, fluxx)  # splrep #added smoothing parameter
+    t, c, k = interpolate.splrep(fluxe, fluxx)
     spline = interpolate.BSpline(t, c, k)
     if decayid == 20 and theta > 10:
         plt.plot(fluxe, flux_unfilt, label=str(decayid) + " " + str(theta))
@@ -321,7 +318,6 @@ def makepolynomfitfluxes_base(
         plt.ylim(0, 200)
         plt.legend()
         plt.show()
-    # spline=interpolate.Akima1DInterpolator(fluxe,fluxx)
     return spline
 
 
@@ -337,14 +333,7 @@ def makeflux(decayid, theta, Enu, is_mu, contrib=""):
     if flux1 == 0:
         return 0
     else:
-        return np.array(
-            flux1(Enu), dtype=np.float128
-        )  # np.power(10,np.array(flux1(Enu),dtype=np.float128))
-
-
-# def makefluxflav(decayid, theta, Enu)
-
-# write function which loads a fit + covariance matrix then multiplies fluxes by it to get new set of fluxes - use as option given to makepolynomfitfluxes which is piped through from fluxFunctions
+        return np.array(flux1(Enu), dtype=np.float128)
 
 
 def get_cov_mat(m_file, flav):
@@ -392,7 +381,7 @@ def get_cov_mat(m_file, flav):
                 md["pip"],
                 md["pim"],
             ]
-        )  # , md["rqe"],md["rres"],md["rdis"],md["rmec"],md["gammaqe"],md["gammares"],md["gammadis"],md["gammamec"]])
+        )
         cov_fin = np.array(
             [
                 cov_a[:, 0],
@@ -412,7 +401,7 @@ def get_cov_mat(m_file, flav):
                 cov_a[:, 3],
                 cov_a[:, 4],
             ]
-        )  # , cov_a[:,5], cov_a[:,6], cov_a[:,7], cov_a[:,8], cov_a[:,9],cov_a[:,10],cov_a[:,11],cov_a[:,12]])
+        )
     elif flav == "mu":
         cov_a = np.array([md["kl"], md["kp"], md["kp"], md["pim"], md["km"], md["pip"]])
         cov_fin = np.array(
@@ -460,16 +449,13 @@ def cov_flux(theta, Enu, flav, m_file):
         decayid = np.array([2, 9, 12])
     for i in range(len(decayid)):
         if decayid[i] in [11, 12]:
-            # print(decayid[i])
             arr_flux.append(makeflux(decayid[i], theta, Enu, True, "pi"))
             arr_flux.append(makeflux(decayid[i], theta, Enu, True, "kp"))
         else:
-            # print(decayid[i])
             arr_flux.append(makeflux(decayid[i], theta, Enu, False))
-    # arr_flux.extend([np.zeros(len(arr_flux[0])),np.zeros(len(arr_flux[0])),np.zeros(len(arr_flux[0]))])
+
     cov_mat = get_cov_mat(m_file, flav)
-    # print(np.shape(cov_mat))
-    # print(np.shape(arr_flux))
+
     store = []
     for i in range(len(cov_mat)):
         for j in range(len(cov_mat)):
@@ -478,19 +464,11 @@ def cov_flux(theta, Enu, flav, m_file):
     arr_flux_err = np.sqrt(np.sum(store, axis=0))
     flux_tot = np.sum(arr_flux, axis=0)
 
-    # print(np.shape(cov_mat), len(arr_flux))
-    # t = np.ones(len(arr_flux))
-    # alt_flux = np.matmul(cov_mat, t)
-    # alt_flux_fin = []
-    # for i in range(17):
-    #     alt_flux_fin.append(alt_flux[i]*arr_flux[i])
-    # print(alt_flux)
     return arr_flux_err / flux_tot
 
 
 pot = 6.6 * 1e21
 nAr_nucleons = 1e30
-# scaling_val = pot*nAr_nucleons
 
 
 # calculate number of events from theoretical prediction (=flux*cross section)
@@ -522,81 +500,6 @@ def makeevents(
     return numevents
 
 
-# generate number of events with given ratio of contributions
-# TODO - rewrite so it finds total events of all particle types and includes efficiencies
-def makeeventsmeas_fitparams(theta, fit_params, pot, nbins, id):
-    if id == "muon":
-        decayID = np.array(
-            [
-                "kl_to_numu",
-                "kp_to_numu_2b",
-                "kp_to_numu_3b",
-                "mum_to_numu",
-                "pip_to_numu",
-            ]
-        )  # [3,5,7,12,13]
-    elif id == "anti_muon":
-        decayID = np.array(
-            [
-                "kl_to_numubar",
-                "km_to_numubar_2b",
-                "km_to_numubar_3b",
-                "mup_to_numubar",
-                "pim_to_numubar",
-            ]
-        )  # [4,8,10,11,14]
-    elif id == "electron":
-        decayID = np.array(["kl_to_nue", "kp_to_nue"])  # [1,6]
-    elif id == "anti_electron":
-        decayID = np.array(["kl_to_nuebar", "km_to_nuebar"])  # [2,9]
-    else:
-        print(
-            "invalid neutrino type specified - input must be muon, anti_muon, electron or anti_electron"
-        )
-    flux_tot = np.zeros(nbins)
-    for i in range(len(decayID)):
-        flux = np.loadtxt(
-            flux_dir + decayID[i] + "_offaxis" + str(theta) + ".txt"
-        )  # +"_"+str(nbins)+"Ebins.txt")
-
-        if len(flux > 0):
-            flux_tot += fit_params[i] * flux[:, 1]
-            #'blah'
-
-    Enu = flux[:, 0]
-    fileout = []
-    # R, gamma are nuissance parameters we want to marginalize over eventually
-    Rqe = 0
-    Rdis = 0
-    Rres = 0
-    Rmec = 0
-    gammamec = 0
-    gammaqel = 0
-    gammadis = 0
-    gammares = 0
-    for i in range(len(flux_tot)):
-        numevents = (
-            flux_tot[i]
-            * xsecs(
-                Enu[i],
-                Rqe,
-                Rres,
-                Rdis,
-                Rmec,
-                gammaqel,
-                gammares,
-                gammadis,
-                gammamec,
-                id,
-            )
-            * scaling_val
-        )  # add number of times I've run over root files
-        #    fileout.append([Enu,np.log10(numevents)])
-        fileout.append([Enu[i], numevents])
-
-    return fileout
-
-
 def get_error(meas_arr):
     error_tot = []
     for j in range(len(meas_arr)):
@@ -611,7 +514,6 @@ def get_error(meas_arr):
 
 
 def make_interp_eff(proc_name, Enu):
-    Enu_interp = np.linspace(0, 11, 56)
     Enu_meas = Enu  # np.arange(0.125, 10.625,0.25)
     bin_centres = np.loadtxt("/unix/dune2/mmacmahon/eff/glb_bin_centres.txt")
     """nue returns nuesig, nuebar_bkg, numu_bkg, numubar_bkg, nc_bkg
@@ -639,102 +541,11 @@ def make_interp_eff(proc_name, Enu):
                 "/unix/dune2/mmacmahon/eff/" + file_prefix + file_ending[i] + ".txt",
                 delimiter=",",
             )[:67]  # get efficiencies up to 11GeV
-            # print(len(Enu_interp), len(bin_centres),len(eff))
-            # eff_interp = (np.interp(Enu_interp, bin_centres,eff)[:-5])
             effs.append(
                 np.interp(Enu_meas, bin_centres, eff)
             )  # interpolate efficiency histogram to energies that match bins in flux hists over range that matches efficiency list, then return range which matches flux hists
 
     return effs
-
-
-"""#fit extrapolated flux to "measured events"  across a couple of off-axis angles
-def makefit(pot,Rqe, Rres,Rdis, Rmec, gammaqel, gammares, gammadis, gammamec,Rpi,Rk,Rmu):
-   
-    chitot=0
-    chitheta=0
-    for theta in [0.0,0.0209,0.03136]:#,0.04181,0.05226]:        #[0.0,5.0,10.0,15.0,20.0,25.0]:
-        chitheta=0
-        filein=np.loadtxt("file_out_Neutrino_doublestats/histtot/histtot_all_offaxis"+str(theta)+"_60Ebins.txt")
-        nummeas=makeeventsmeas(filein,pot,True)
-        histototpred=[]
-        chi=0
-        #print(len(filein))
-        for i in range(len(filein)-40):
-            chi=0
-            Enu=nummeas[i][0]
-            pionev=makeevents(theta,pot,13,Rqe, Rres,Rdis, Rmec, gammaqel, gammares, gammadis, gammamec,Enu)
-            kaonev=makeevents(theta,pot,5,Rqe, Rres,Rdis, Rmec, gammaqel, gammares, gammadis, gammamec,Enu)
-            #muonev=makeevents(theta,pot,12,Rqe, Rres,Rdis, Rmec, gammaqel, gammares, gammadis, gammamec,Enu)
-            if((Rpi*pionev)*1/2)<=0:#+Rk*kaonev+Rmu*muonev)*1/2))<=0:
-                numtheo=0
-            else:
-                numtheo=(Rpi*pionev+Rk*kaonev)*1/2#+Rmu*muonev)*1/2 
-            if nummeas[i][1]!=0:
-                chi=((nummeas[i][1])-numtheo)**2/(nummeas[i][1]) #chi^2 function
-            else:
-                chi=0
-            histototpred.append([Enu,numtheo])
-            chitheta+=chi
-        chitot+=chitheta
-        np.savetxt("file_out_Neutrino/evhistototpred_pikmu_prism"+str(theta)+"m.txt", histototpred)
-        np.savetxt("file_out_Neutrino/evhistototmeas_pikmu_prism"+str(theta)+"m.txt", nummeas)
-    return chitot """
-
-"""#minimize the chi^2 plus nuissance parameters
-def minimizeme(params,pot,Rpi,Rk):
-    Rqe, Rres,Rdis, Rmec, gammaqel, gammares, gammadis, gammamec,Rmu=params
-    a=makefit(pot,Rqe, Rres,Rdis, Rmec, gammaqel, gammares, gammadis, gammamec,Rpi,Rk,Rmu)
-    print("chitot = ",a)
-    res=a+((Rqe-1.0)/1.0)**2+((Rdis-1.0)/1.0)**2+((Rres-1.0)/1.0)**2+((Rmu-1.0)/1.0)**2+(gammaqel/1.0)**2+(gammadis/1.0)**2+(gammares/1.0)**2
-    return res"""
-
-
-##PLOTTING
-
-
-"""def make_plot_grid(p_type,fit_params, Enu, meas_arr, err_arr,m_obj):
-    theta = [0.0, 0.0209, 0.03136, 0.04181, 0.05226]
-    color=['m','b','g','orange','c']
-    if p_type =='muon':
-        func = [func_0_muon,func_1_muon,func_2_muon,func_3_muon,func_4_muon]
-        id = [3,5,7,12,13]
-        id_str = "muon"
-    if p_type =='a_muon':
-        func = [func_0_anti_muon,func_1_anti_muon,func_2_anti_muon,func_3_anti_muon,func_4_anti_muon]
-        id = [4,8,10,11,14]
-        id_str = "anti_muon"
-    if p_type =='electron':
-        func = [func_0_electron,func_1_electron,func_2_electron,func_3_electron,func_4_electron]
-        id = [1,6]
-        id_str = "electron"
-    if p_type =='a_electron':
-        func = [func_0_anti_electron,func_1_anti_electron,func_2_anti_electron,func_3_anti_electron,func_4_anti_electron]
-        id = [2,9]
-        id_str = "anti_electron"
-    
-    n_params = len(id)
-    fig, ax = plt.subplots(5,len(id)+1,figsize=(18,24),sharex=True)
-    plt.ticklabel_format(axis='both', style='sci', scilimits=(4,4))
-    for i in range(5):
-        ax[i][0].errorbar(Enu, meas_arr[i][:,1], err_arr[i], fmt="ok", label="data",markersize=5, alpha =0.6)
-        ax[i][0].plot(Enu, func[i](Enu, *m_obj.values), label="fit")
-        for j in range(n_params):
-            ax[i][0].plot(Enu, m_obj.values[j]*makeflux(id[j],theta[i],Enu)*scaling_val*xsecs(Enu, 0,0,0,0,0,0,id_str), label = str(id[j]),linestyle='-',color=color[j])
-            ax[i][0].plot(Enu, fit_params[j]*makeflux(id[j],theta[i],Enu)*scaling_val*xsecs(Enu, 0,0,0,0,0,0,id_str),linestyle='--',color=color[j], marker='x')
-
-        for k in range(1,n_params+1):
-            ax[i][k].plot(Enu, m_obj.values[k-1]*makeflux(id[k-1],theta[i],Enu)*scaling_val*xsecs(Enu, 0,0,0,0,0,0,id_str), label = str(id[k-1]),linestyle='-',color=color[k-1])
-            ax[i][k].plot(Enu, fit_params[k-1]*makeflux(id[k-1],theta[i],Enu)*scaling_val*xsecs(Enu, 0,0,0,0,0,0,id_str),linestyle='--',color=color[k-1], marker='x')
-            ax[i][k].legend(frameon=False)
-        ax[i][0].legend(frameon=False)
-        #ax[i][0].set_ylim(0)
-
-    plt.subplots_adjust(wspace=0.15, hspace=0.1)
-    plt.xlabel("$E_\\nu$ [GeV]")
-    plt.ylabel("$N_{events}$");
-    plt.show();
-"""
 
 
 def conv_params(fit_params):
@@ -845,13 +656,6 @@ def make_plot_grid_combined(p_type, fit_params, Enu, meas_arr, err_arr, m_val):
     fig, ax = plt.subplots(5, len(id), figsize=(36, 18), sharex=True)
     plt.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
     for i in range(5):
-        # ax[i][0].errorbar(Enu, meas_arr[i][:,1], err_arr[i], fmt="ok", label="data",markersize=5, alpha =0.6)
-        # ax[i][0].plot(Enu, func[i](Enu, *m_obj), label="fit") #
-        # for j in range(n_params):
-        # ax[i][0].plot(Enu, m_obj[j+offset]*makeflux(id[j],theta[i],Enu)*scaling_val*xsecs(Enu, 0,0,0,0,0,0,id_str), label = str(id[j]),linestyle='-',color=color[j])
-        # ax[i][0].plot(Enu, fit_params[j+offset]*makeflux(id[j],theta[i],Enu)*scaling_val*xsecs(Enu, 0,0,0,0,0,0,id_str),linestyle='--',color=color[j], marker='x')
-        # ax[i][0].ticklabel_format(axis='y', style='sci', scilimits=(0,0))
-        # ax[i][0].tick_params(axis = 'both', which = 'both', direction = 'in', labelsize = 20)
         for k in range(0, n_params):
             initialize_fluxes(True)
             ax[i][k].plot(
@@ -899,8 +703,6 @@ def make_plot_grid_combined(p_type, fit_params, Enu, meas_arr, err_arr, m_val):
                         ]
                     ),
                 )
-        # ax[i][0].legend(frameon=False)
-        # ax[i][0].set_ylim(0)
 
     plt.subplots_adjust(wspace=0.15, hspace=0.2)
     plt.xlabel("$E_\\nu$ [GeV]")
@@ -972,13 +774,9 @@ def make_plot_grid_no_comb(p_type, fit_params, Enu, meas_arr, err_arr, m_obj):
             )
             ax[i][k].yaxis.get_offset_text().set_fontsize(24)
 
-            # ax[i][k].plot(Enu, fit_params[k-1+offset]*makeflux(id[k-1],theta[i],Enu)*scaling_val*xsecs(Enu, 0,0,0,0,0,0,id_str),linestyle='--',color=color[k-1], marker='x')
-            # ax[i][k].legend(frameon=False,  prop={'size': 20})
-
             ax[4][k].set_xlabel("$E_\\nu$ [GeV]", fontsize=30)
             ax[i][0].set_ylabel("$N_{events}$", fontsize=30)
         ax[i][0].legend(frameon=False)
-        # ax[i][0].set_ylim(0)
 
     plt.subplots_adjust(wspace=0.15, hspace=0.2)
 
@@ -990,7 +788,6 @@ def get_contours(arr, p_names, m_object):
         for j in range(len(p_names)):
             if i == j:
                 arr[i].append(m_object.profile(p_names[i], size=20))
-            # ct_pts[i][j] = m_mu.mncontour(p_names[i],p_names[j],cl=1,size=10)
             else:
                 arr[i].append(m_object.mncontour(p_names[i], p_names[j], cl=1, size=20))
     return arr
@@ -1066,7 +863,6 @@ def make_contour_plots(dir, ext, fit_params=[1, 1, 1, 1, 1]):
                     x_rhc = arr_contour_rhc[0]
                     y = arr_contour[1]
                     y_rhc = arr_contour_rhc[1]
-                    # axes[i,j].plot(m_obj.values[i],m_obj.values[j],linestyle=None, marker='x',label = 'Fit')
                     axes[i, j].plot(
                         fit_params[i],
                         fit_params[j],
@@ -1099,60 +895,13 @@ def make_contour_plots(dir, ext, fit_params=[1, 1, 1, 1, 1]):
     )
 
 
-"""def make_plot_grid_all(p_type,fit_params, Enu, meas_arr, err_arr,m_obj):
-    theta = [0.0, 0.0209, 0.03136, 0.04181, 0.05226]
-    color=['m','b','g','orange','c']
-    if p_type =='muon':
-        func = [func_all0_muon,func_all1_muon,func_all2_muon,func_all3_muon,func_all4_muon]
-        id = [3,5,7,12,13]
-        id_str = "muon"
-        offset=0
-    if p_type =='a_muon':
-        func = [func_all0_anti_muon,func_all1_anti_muon,func_all2_anti_muon,func_all3_anti_muon,func_all4_anti_muon]
-        id = [4,8,10,11,14]
-        id_str = "anti_muon"
-        offset = 5
-    if p_type =='electron':
-        func = [func_all0_electron,func_all1_electron,func_all2_electron,func_all3_electron,func_all4_electron]
-        id = [1,6]
-        id_str = "electron"
-        offset = 10
-    if p_type =='a_electron':
-        func = [func_all0_anti_electron,func_all1_anti_electron,func_all2_anti_electron,func_all3_anti_electron,func_all4_anti_electron]
-        id = [2,9]
-        id_str = "anti_electron"b
-        offset = 12
-    
-    n_params = len(id)
-    fig, ax = plt.subplots(5,len(id)+1,figsize=(18,24),sharex=True)
-    plt.ticklabel_format(axis='both', style='sci', scilimits=(4,4))
-    for i in range(5):
-        ax[i][0].errorbar(Enu, meas_arr[i][:,1], err_arr[i], fmt="ok", label="data",markersize=5, alpha =0.6)
-        ax[i][0].plot(Enu, func[i](Enu, *m_obj.values), label="fit")
-        for j in range(n_params):
-            ax[i][0].plot(Enu, m_obj.values[j+offset]*makeflux(id[j],theta[i],Enu)*scaling_val*xsecs(Enu, 0,0,0,0,0,0,id_str), label = str(id[j]),linestyle='-',color=color[j])
-            ax[i][0].plot(Enu, fit_params[j+offset]*makeflux(id[j],theta[i],Enu)*scaling_val*xsecs(Enu, 0,0,0,0,0,0,id_str),linestyle='--',color=color[j], marker='x')
-
-        for k in range(1,n_params+1):
-            ax[i][k].plot(Enu, m_obj.values[k-1+offset]*makeflux(id[k-1],theta[i],Enu)*scaling_val*xsecs(Enu, 0,0,0,0,0,0,id_str), label = str(id[k-1]),linestyle='-',color=color[k-1])
-            ax[i][k].plot(Enu, fit_params[k-1+offset]*makeflux(id[k-1],theta[i],Enu)*scaling_val*xsecs(Enu, 0,0,0,0,0,0,id_str),linestyle='--',color=color[k-1], marker='x')
-            ax[i][k].legend(frameon=False)
-        ax[i][0].legend(frameon=False)
-        #ax[i][0].set_ylim(0)
-
-    plt.subplots_adjust(wspace=0.15, hspace=0.1)
-    plt.xlabel("$E_\\nu$ [GeV]")
-    plt.ylabel("$N_{events}$");
-    plt.show();
-"""
-
-
 def check_zero_add(flux_it, flux_tot):
     if len(flux_it) > 0:
         flux_tot += flux_it[:, 1]
     return flux_tot
 
 
+# generate number of events with given ratio of contributions
 def makeeventsmeas_fitparams_eff(
     theta, fit_params, pot_share, Ebins, id, smooth
 ):  # vectorized version
@@ -1542,17 +1291,6 @@ class fluxFunction:
         self.theta = theta
         self.eff = eff
 
-        # if self.channel+self.flavour == "electron":
-        #    self.eff_arr = [1, 0, 0, 0, 0]
-        # elif self.channel+self.flavour == "anti_electron":
-        #    self.eff_arr = [0, 1, 0, 0, 0]
-        # elif self.channel+self.flavour == "muon":
-        #    self.eff_arr = [0, 0, 1, 0, 0]
-        # elif self.channel+self.flavour == "anti_muon":
-        #    self.eff_arr = [0, 0, 0, 1, 0]
-        # if self.eff:
-        #    self.eff_arr = make_interp_eff(self.channel + self.flavour)
-
     def __call__(
         self,
         pot_share,
@@ -1680,12 +1418,12 @@ class fluxFunction:
 muon_functions = [
     fluxFunction("muon", "", theta, True)
     for theta in [0.0, 0.010976, 0.021952, 0.032928, 0.042336, 0.053312, 0.06272]
-]  # [0.001568, 0.010976, 0.021952, 0.032928, 0.042336, 0.053312,0.061152]]
+]
 muon_0, muon_1, muon_2, muon_3, muon_4, muon_5, muon_6 = muon_functions
 anti_muon_functions = [
     fluxFunction("muon", "anti_", theta, True)
     for theta in [0.0, 0.010976, 0.021952, 0.032928, 0.042336, 0.053312, 0.06272]
-]  # [0.001568, 0.010976, 0.021952, 0.032928, 0.042336, 0.053312,0.061152]]
+]
 (
     anti_muon_0,
     anti_muon_1,
@@ -1698,14 +1436,14 @@ anti_muon_functions = [
 electron_functions = [
     fluxFunction("electron", "", theta, True)
     for theta in [0.0, 0.010976, 0.021952, 0.032928, 0.042336, 0.053312, 0.06272]
-]  # [0.001568, 0.010976, 0.021952, 0.032928, 0.042336, 0.053312,0.061152]]
+]
 electron_0, electron_1, electron_2, electron_3, electron_4, electron_5, electron_6 = (
     electron_functions
 )
 anti_electron_functions = [
     fluxFunction("electron", "anti_", theta, True)
     for theta in [0.0, 0.010976, 0.021952, 0.032928, 0.042336, 0.053312, 0.06272]
-]  # [0.001568, 0.010976, 0.021952, 0.032928, 0.042336, 0.053312,0.061152]]
+]
 (
     anti_electron_0,
     anti_electron_1,
