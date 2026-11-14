@@ -1,0 +1,10 @@
+include "/Users/margotmacmahon/Documents/PhD/NuRec/globes_git/nu-osc/0-code/glb/DUNE/eff/post_dis_RHC_numu_sig.txt"
+
+include "/Users/margotmacmahon/Documents/PhD/NuRec/globes_git/nu-osc/0-code/glb/DUNE/eff/post_dis_RHC_numubar_sig.txt"
+
+include "/Users/margotmacmahon/Documents/PhD/NuRec/globes_git/nu-osc/0-code/glb/DUNE/eff/post_dis_RHC_NC_bkg.txt"
+
+include "/Users/margotmacmahon/Documents/PhD/NuRec/globes_git/nu-osc/0-code/glb/DUNE/eff/post_dis_RHC_nutau_bkg.txt"
+
+include "/Users/margotmacmahon/Documents/PhD/NuRec/globes_git/nu-osc/0-code/glb/DUNE/eff/post_dis_RHC_nutaubar_bkg.txt"
+
