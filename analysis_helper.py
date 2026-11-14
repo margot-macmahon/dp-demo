@@ -606,7 +606,7 @@ def make_plot_grid_combined(p_type, fit_params, Enu, meas_arr, err_arr, m_val):
     theta = [0.0, 0.0209, 0.03136, 0.04181, 0.05226]
     color = ["m", "b", "g", "orange", "c"]
     if p_type == "muon":
-        func = [muon_noeff_0, muon_noeff_1, muon_noeff_2, muon_noeff_3, muon_noeff_4]
+        func = [muon_noeff_0, muon_noeff_1]
         id = [3, 5, 7, 12, 13]
         id_str = "muon"
         offset = 0
@@ -616,9 +616,6 @@ def make_plot_grid_combined(p_type, fit_params, Enu, meas_arr, err_arr, m_val):
         func = [
             anti_muon_noeff_0,
             anti_muon_noeff_1,
-            anti_muon_noeff_2,
-            anti_muon_noeff_3,
-            anti_muon_noeff_4,
         ]
         id = [4, 8, 10, 11, 14]
         id_str = "anti_muon"
@@ -629,9 +626,6 @@ def make_plot_grid_combined(p_type, fit_params, Enu, meas_arr, err_arr, m_val):
         func = [
             electron_noeff_0,
             electron_noeff_1,
-            electron_noeff_2,
-            electron_noeff_3,
-            electron_noeff_4,
         ]
         id = [1, 6, 11]
         id_str = "electron"
@@ -642,9 +636,6 @@ def make_plot_grid_combined(p_type, fit_params, Enu, meas_arr, err_arr, m_val):
         func = [
             anti_electron_noeff_0,
             anti_electron_noeff_1,
-            anti_electron_noeff_2,
-            anti_electron_noeff_3,
-            anti_electron_noeff_4,
         ]
         id = [2, 9, 12]
         id_str = "anti_electron"
@@ -714,7 +705,7 @@ def make_plot_grid_no_comb(p_type, fit_params, Enu, meas_arr, err_arr, m_obj):
     theta = [0.0, 0.0209, 0.03136, 0.04181, 0.05226]
     color = ["m", "b", "g", "orange", "c"]
     if p_type == "muon":
-        func = [muon_noeff_0, muon_noeff_1, muon_noeff_2, muon_noeff_3, muon_noeff_4]
+        func = [muon_noeff_0, muon_noeff_1]
         id = [3, 5, 7, 12, 13]
         id_str = "muon"
         offset = 0
@@ -722,9 +713,6 @@ def make_plot_grid_no_comb(p_type, fit_params, Enu, meas_arr, err_arr, m_obj):
         func = [
             anti_muon_noeff_0,
             anti_muon_noeff_1,
-            anti_muon_noeff_2,
-            anti_muon_noeff_3,
-            anti_muon_noeff_4,
         ]
         id = [4, 8, 10, 11, 14]
         id_str = "anti_muon"
@@ -733,9 +721,6 @@ def make_plot_grid_no_comb(p_type, fit_params, Enu, meas_arr, err_arr, m_obj):
         func = [
             electron_noeff_0,
             electron_noeff_1,
-            electron_noeff_2,
-            electron_noeff_3,
-            electron_noeff_4,
         ]
         id = [1, 6]
         id_str = "electron"
@@ -744,9 +729,6 @@ def make_plot_grid_no_comb(p_type, fit_params, Enu, meas_arr, err_arr, m_obj):
         func = [
             anti_electron_noeff_0,
             anti_electron_noeff_1,
-            anti_electron_noeff_2,
-            anti_electron_noeff_3,
-            anti_electron_noeff_4,
         ]
         id = [2, 9]
         id_str = "anti_electron"
