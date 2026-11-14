@@ -45,9 +45,8 @@ if param_xsec:
 if step:
     step_str = "steps"
 
-time = eval(sys.argv[2])
-run_contour = eval(sys.argv[3])
-prefix = "/unix/dune2/mmacmahon/dune-prism/scripts/qgsp_outputs"
+run_contour = eval(sys.argv[2])
+prefix = "fit_outputs"
 run_n = "all_on_qgsp_"
 ext = str(sys.argv[1])
 pkl_str = (
@@ -61,12 +60,11 @@ pkl_str = (
     + ext
     + ".pkl"
 )
-flux_dir = "/unix/dune2/mmacmahon/qgsp/rhc/40_angles_80_repeats/histtot/10_GeV/"  # /unix/dune2/mmacmahon/qgsp/40_angles_80_repeats/histtot/10_GeV/'#'/unix/dune2/mmacmahon/250_repeats/histtot/'
-# flux_dir_ftfp = '/unix/dune2/mmacmahon/ftfp/6_angles_320_repeats_extra_nue/histtot/10_GeV/'
+flux_dir = "flux_histos/histtot/10_GeV/"
 
 
 # ========== Change angles used in lines 1019,1022,1025 and 1028 if changing the values of theta!! ========= #
-theta = [0.0, 0.010976, 0.021952, 0.032928, 0.042336, 0.053312, 0.06272]
+theta = [0.0, 0.06272]
 # theta = [0.001568, 0.010976, 0.021952, 0.032928, 0.042336, 0.053312,0.061152]
 ee = []
 meas_mu = []
@@ -78,11 +76,8 @@ massLAr = 67 * 1e3  # tonne?, fiducial mass of LAr detector
 # dim 5x7x3, V=105 m^3
 # LAr density 1417 kg/m^3
 numArnucleons = 1 * 1e30
-if time:
-    POT = float(sys.argv[1]) * 1.1e21
-else:
-    POT = 1.1e21 * 6  # 6 years
-print(type(POT))
+POT = 1.1e21 * 6  # 6 years
+
 
 initialize_xsecs(param_xsec)
 initialize_fluxes(smear)
@@ -150,7 +145,6 @@ meas_e = np.array(meas_e)
 meas_ae = np.array(meas_ae)
 
 Enu = np.array(meas_mu[0][:, 0])
-print(len(Enu))
 
 err_mu = get_error(meas_mu)
 err_amu = get_error(meas_amu)
@@ -184,25 +178,8 @@ chi2_ax_0 = Chi2Function(
 chi2_ax_1 = Chi2Function(
     x_data=Enu, y_data=meas_axis[1], y_err=meas_axis_err[1], model=axis_1
 )
-chi2_ax_2 = Chi2Function(
-    x_data=Enu, y_data=meas_axis[2], y_err=meas_axis_err[2], model=axis_2
-)
-chi2_ax_3 = Chi2Function(
-    x_data=Enu, y_data=meas_axis[3], y_err=meas_axis_err[3], model=axis_3
-)
-chi2_ax_4 = Chi2Function(
-    x_data=Enu, y_data=meas_axis[4], y_err=meas_axis_err[4], model=axis_4
-)
-chi2_ax_5 = Chi2Function(
-    x_data=Enu, y_data=meas_axis[5], y_err=meas_axis_err[5], model=axis_5
-)
-chi2_ax_6 = Chi2Function(
-    x_data=Enu, y_data=meas_axis[6], y_err=meas_axis_err[6], model=axis_6
-)
 
-comb_chi2 = addChi2(
-    chi2_ax_0, chi2_ax_1, chi2_ax_2, chi2_ax_3, chi2_ax_4, chi2_ax_5, chi2_ax_6
-)
+comb_chi2 = addChi2(chi2_ax_0, chi2_ax_1)
 
 m_fixed = [
     False,
