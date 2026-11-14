@@ -119,7 +119,7 @@ def xsecs_base(
         np.ones_like(Enu),
         np.ones_like(Enu),
     )  # TODO redefine R_i to be 1 and i_scale to be nominally 1, adjusted for nue xsecs.
-    base_path = "/unix/dune2/mmacmahon/genie_xsecs/"
+    base_path = "genie_xsecs/"
     xsec_files = {
         "numu": {
             "qe": "numu_qel_cc_",
@@ -220,7 +220,7 @@ def xsecs_base(
     ) * 1e-38
 
     if "nc" in id:
-        xsec_nc = np.loadtxt("/unix/dune2/mmacmahon/globes_xsecs/xsec_nc.dat")
+        xsec_nc = np.loadtxt("globes_xsecs/xsec_nc.dat")
         nc_x, nc_y = 10 ** xsec_nc[:, 0], xsec_nc[:, 1] * 10 ** xsec_nc[:, 0]
         if id == "anc":
             nc_y = xsec_nc[:, 4] * 10 ** xsec_nc[:, 0]
@@ -333,7 +333,7 @@ def makeflux(decayid, theta, Enu, is_mu, contrib=""):
     if flux1 == 0:
         return 0
     else:
-        return np.array(flux1(Enu), dtype=np.float128)
+        return np.array(flux1(Enu))
 
 
 def get_cov_mat(m_file, flav):
@@ -515,7 +515,7 @@ def get_error(meas_arr):
 
 def make_interp_eff(proc_name, Enu):
     Enu_meas = Enu  # np.arange(0.125, 10.625,0.25)
-    bin_centres = np.loadtxt("/unix/dune2/mmacmahon/eff/glb_bin_centres.txt")
+    bin_centres = np.loadtxt("eff/glb_bin_centres.txt")
     """nue returns nuesig, nuebar_bkg, numu_bkg, numubar_bkg, nc_bkg
     nuebar returns nuebarsig, nue_bkg, numu_bkg, numubar_bkg, nc_bkg
     numu returns numusig, [nue_bkg, nuebar_bkg], nc_bkg
@@ -538,7 +538,7 @@ def make_interp_eff(proc_name, Enu):
             effs.append(np.zeros(len(Enu_meas)))
         else:
             eff = np.loadtxt(
-                "/unix/dune2/mmacmahon/eff/" + file_prefix + file_ending[i] + ".txt",
+                "eff/" + file_prefix + file_ending[i] + ".txt",
                 delimiter=",",
             )[:67]  # get efficiencies up to 11GeV
             effs.append(
@@ -805,19 +805,9 @@ def make_contour_plots(dir, ext, fit_params=[1, 1, 1, 1, 1]):
                 axes[i, j].axis("off")
             else:
                 if i == j:
-                    arr_contour = np.loadtxt(
-                        "/unix/dune2/mmacmahon/dune-prism/scripts/"
-                        + dir
-                        + param_names[j]
-                        + ext
-                        + "_fhc.txt"
-                    )
+                    arr_contour = np.loadtxt(dir + param_names[j] + ext + "_fhc.txt")
                     arr_contour_rhc = np.loadtxt(
-                        "/unix/dune2/mmacmahon/dune-prism/scripts/"
-                        + dir
-                        + param_names[j]
-                        + ext
-                        + "_rhc.txt"
+                        dir + param_names[j] + ext + "_rhc.txt"
                     )
                     x = arr_contour[0]
                     x_rhc = arr_contour_rhc[0]
@@ -839,8 +829,7 @@ def make_contour_plots(dir, ext, fit_params=[1, 1, 1, 1, 1]):
                 else:
                     arr_contour = np.transpose(
                         np.loadtxt(
-                            "/unix/dune2/mmacmahon/dune-prism/scripts/"
-                            + dir
+                            dir
                             + param_names[j]
                             + "_"
                             + param_names[i]
@@ -850,8 +839,7 @@ def make_contour_plots(dir, ext, fit_params=[1, 1, 1, 1, 1]):
                     )
                     arr_contour_rhc = np.transpose(
                         np.loadtxt(
-                            "/unix/dune2/mmacmahon/dune-prism/scripts/"
-                            + dir
+                            dir
                             + param_names[j]
                             + "_"
                             + param_names[i]
@@ -889,7 +877,7 @@ def make_contour_plots(dir, ext, fit_params=[1, 1, 1, 1, 1]):
                 # axes[i,j].legend(frameon=False,loc='upper right')
     plt.subplots_adjust(wspace=0.4, hspace=0.3)
     plt.savefig(
-        "/unix/dune2/mmacmahon/dune-prism/plots/triangle.pdf",
+        "./triangle.pdf",
         bbox_inches="tight",
         dpi=300,
     )
@@ -935,7 +923,6 @@ def makeeventsmeas_fitparams_eff(
             + glob.glob(f"{flux_dir}*_to_{flux_type}_*offaxis{theta}_pi.txt")
             + glob.glob(f"{flux_dir}*_to_{flux_type}_*offaxis{theta}_kp.txt")
         )
-        # print(files)
         flux[flux_type] = np.sum(
             [
                 np.loadtxt(files[i])[:, 1] * params[flux_type][i]
@@ -1264,22 +1251,24 @@ class addChi2:
     ):
         # Sum the individual chi2 values from each function
         total_chi2 = np.sum(
-            chi2_func(
-                p_kl,
-                p_kp,
-                p_km,
-                p_pip,
-                p_pim,
-                Rqel,
-                Rres,
-                Rdis,
-                Rmec,
-                gammaqel,
-                gammares,
-                gammadis,
-                gammamec,
-            )
-            for chi2_func in self.chi2_functions
+            [
+                chi2_func(
+                    p_kl,
+                    p_kp,
+                    p_km,
+                    p_pip,
+                    p_pim,
+                    Rqel,
+                    Rres,
+                    Rdis,
+                    Rmec,
+                    gammaqel,
+                    gammares,
+                    gammadis,
+                    gammamec,
+                )
+                for chi2_func in self.chi2_functions
+            ]
         )
         return total_chi2
 
@@ -1415,95 +1404,53 @@ class fluxFunction:
         return np.matmul(S, fin_events)
 
 
-muon_functions = [
-    fluxFunction("muon", "", theta, True)
-    for theta in [0.0, 0.010976, 0.021952, 0.032928, 0.042336, 0.053312, 0.06272]
-]
-muon_0, muon_1, muon_2, muon_3, muon_4, muon_5, muon_6 = muon_functions
+muon_functions = [fluxFunction("muon", "", theta, True) for theta in [0.0, 0.06272]]
+muon_0, muon_1 = muon_functions
 anti_muon_functions = [
-    fluxFunction("muon", "anti_", theta, True)
-    for theta in [0.0, 0.010976, 0.021952, 0.032928, 0.042336, 0.053312, 0.06272]
+    fluxFunction("muon", "anti_", theta, True) for theta in [0.0, 0.06272]
 ]
 (
     anti_muon_0,
     anti_muon_1,
-    anti_muon_2,
-    anti_muon_3,
-    anti_muon_4,
-    anti_muon_5,
-    anti_muon_6,
 ) = anti_muon_functions
 electron_functions = [
-    fluxFunction("electron", "", theta, True)
-    for theta in [0.0, 0.010976, 0.021952, 0.032928, 0.042336, 0.053312, 0.06272]
+    fluxFunction("electron", "", theta, True) for theta in [0.0, 0.06272]
 ]
-electron_0, electron_1, electron_2, electron_3, electron_4, electron_5, electron_6 = (
-    electron_functions
-)
+electron_0, electron_1 = electron_functions
 anti_electron_functions = [
-    fluxFunction("electron", "anti_", theta, True)
-    for theta in [0.0, 0.010976, 0.021952, 0.032928, 0.042336, 0.053312, 0.06272]
+    fluxFunction("electron", "anti_", theta, True) for theta in [0.0, 0.06272]
 ]
 (
     anti_electron_0,
     anti_electron_1,
-    anti_electron_2,
-    anti_electron_3,
-    anti_electron_4,
-    anti_electron_5,
-    anti_electron_6,
 ) = anti_electron_functions
 muon_functions_noeff = [
-    fluxFunction("muon", "", theta, False)
-    for theta in [0.0, 0.010976, 0.021952, 0.032928, 0.042336, 0.053312, 0.06272]
+    fluxFunction("muon", "", theta, False) for theta in [0.0, 0.06272]
 ]
 (
     muon_noeff_0,
     muon_noeff_1,
-    muon_noeff_2,
-    muon_noeff_3,
-    muon_noeff_4,
-    muon_noeff_5,
-    muon_noeff_6,
 ) = muon_functions_noeff
 anti_muon_functions_noeff = [
-    fluxFunction("muon", "anti_", theta, False)
-    for theta in [0.0, 0.010976, 0.021952, 0.032928, 0.042336, 0.053312, 0.06272]
+    fluxFunction("muon", "anti_", theta, False) for theta in [0.0, 0.06272]
 ]
 (
     anti_muon_noeff_0,
     anti_muon_noeff_1,
-    anti_muon_noeff_2,
-    anti_muon_noeff_3,
-    anti_muon_noeff_4,
-    anti_muon_noeff_5,
-    anti_muon_noeff_6,
 ) = anti_muon_functions_noeff
 electron_functions_noeff = [
-    fluxFunction("electron", "", theta, False)
-    for theta in [0.0, 0.010976, 0.021952, 0.032928, 0.042336, 0.053312, 0.06272]
+    fluxFunction("electron", "", theta, False) for theta in [0.0, 0.06272]
 ]
 (
     electron_noeff_0,
     electron_noeff_1,
-    electron_noeff_2,
-    electron_noeff_3,
-    electron_noeff_4,
-    electron_noeff_5,
-    electron_noeff_6,
 ) = electron_functions_noeff
 anti_electron_functions_noeff = [
-    fluxFunction("electron", "anti_", theta, False)
-    for theta in [0.0, 0.010976, 0.021952, 0.032928, 0.042336, 0.053312, 0.06272]
+    fluxFunction("electron", "anti_", theta, False) for theta in [0.0, 0.06272]
 ]
 (
     anti_electron_noeff_0,
     anti_electron_noeff_1,
-    anti_electron_noeff_2,
-    anti_electron_noeff_3,
-    anti_electron_noeff_4,
-    anti_electron_noeff_5,
-    anti_electron_noeff_6,
 ) = anti_electron_functions_noeff
 
 
