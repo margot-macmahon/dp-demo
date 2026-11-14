@@ -3,6 +3,7 @@ import sys
 import timeit
 from functools import partial
 from multiprocessing import Pool
+import glob
 
 import numpy as np
 import phasespace
@@ -204,11 +205,11 @@ def filesout(
     fileid=0,
     is_rhc=False,
     alt_str="nom",
-    dir="/unix/dune2/mmacmahon/nd/",
+    in_dir="",
+    out_dir="/unix/dune2/mmacmahon/nd/",
     decayid=0,
-    n_rep=20,
+    n_rep=1,
 ):
-
     if decayid == 11 or decayid == 12:
         is_mu = True
         print("is_mu")
@@ -216,29 +217,17 @@ def filesout(
         is_mu = False
 
     # dir = "/unix/dune2/mmacmahon/qgsp/40_angles_80_repeats/rem/" # MUST HAVE / at the end of string!!!
-    print("output directory = ", dir)
-    prefix = dir + str(fileid) + "_thetaoa" + str(theta_oa) + "_decayid" + str(decayid)
+    print("output directory = ", out_dir)
+    prefix = f"{out_dir}/{str(fileid)}_thetaoa{str(theta_oa)}_decayid{str(decayid)}"
     if decayid == 11 or decayid == 12:
         prefix_pi = (
-            dir
-            + str(fileid)
-            + "_thetaoa"
-            + str(theta_oa)
-            + "_decayid"
-            + str(decayid)
-            + "pi"
+            f"{out_dir}/{str(fileid)}_thetaoa{str(theta_oa)}_decayid{str(decayid)}pi"
         )
         prefix_k = (
-            dir
-            + str(fileid)
-            + "_thetaoa"
-            + str(theta_oa)
-            + "_decayid"
-            + str(decayid)
-            + "kp"
+            f"{out_dir}/{str(fileid)}_thetaoa{str(theta_oa)}_decayid{str(decayid)}kp"
         )
-    if not os.path.exists(dir):
-        os.makedirs(dir)
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
 
     listNDLArEf = []
     listNDLArwf = []
@@ -253,29 +242,31 @@ def filesout(
         listNDLArwf_k = []
         listNDLArposf_k = []
 
-    # there are 25 root files
-    f_prefix = "/unix/dune2/mmacmahon/data/g4lbne_v3r5p6_QGSP_BERT_OptEngNov2017_150cmTargetCone_NoMod2_neutrino_"
+    # there are up to 25 root files
+    f_prefix = f"{in_dir}/g4lbne_v3r5p10-22-gf42572f_QGSP_BERT_OfficialEngDesignSept2021_neutrino_"
 
     if alt_str != "nom":
         if alt_str == "ftfp":
-            f_prefix = "/unix/dune2/mmacmahon/data/ftfp-bert/g4lbne_v3r5p10-23-g97c8e62_FTFP_BERT_OfficialEngDesignSept2021_neutrino_"
+            f_prefix = f"{in_dir}/g4lbne_v3r5p10-23-g97c8e62_FTFP_BERT_OfficialEngDesignSept2021_neutrino_"
         elif alt_str == "qgsp":
-            f_prefix = "/unix/dune2/mmacmahon/data/qgsp_bert/fhc/g4lbne_v3r5p10-22-gf42572f_QGSP_BERT_OfficialEngDesignSept2021_neutrino_"
+            f_prefix = f"{in_dir}/g4lbne_v3r5p10-22-gf42572f_QGSP_BERT_OfficialEngDesignSept2021_neutrino_"
         else:
             print("Flux file type not recognised")
 
     if is_rhc:
         print("is_rhc")
-        f_prefix = "/unix/dune2/mmacmahon/data/rhc/g4lbne_v3r5p6_QGSP_BERT_OptEngNov2017_150cmTargetCone_NoMod2_antineutrino_"
+        f_prefix = f"{in_dir}/rhc/g4lbne_v3r5p6_QGSP_BERT_OptEngNov2017_150cmTargetCone_NoMod2_antineutrino_"
         if alt_str != "nom":
             if alt_str == "ftfp":
-                f_prefix = "/unix/dune2/mmacmahon/data/ftfp-bert/rhc/g4lbne_v3r5p10-23-g97c8e62_FTFP_BERT_OfficialEngDesignSept2021_antineutrino_"
+                f_prefix = f"{in_dir}/ftfp-bert/rhc/g4lbne_v3r5p10-23-g97c8e62_FTFP_BERT_OfficialEngDesignSept2021_antineutrino_"
             elif alt_str == "qgsp":
-                f_prefix = "/unix/dune2/mmacmahon/data/qgsp_bert/rhc/g4lbne_v3r5p10-23-g97c8e62_QGSP_BERT_OfficialEngDesignSept2021_antineutrino_"
+                f_prefix = f"{in_dir}/qgsp_bert/rhc/g4lbne_v3r5p10-23-g97c8e62_QGSP_BERT_OfficialEngDesignSept2021_antineutrino_"
 
-    root_files = [f_prefix + f"{rootid:05d}.dk2nu.root" for rootid in range(1, 26)]
+    root_files = sorted(glob.glob(f_prefix + "*.dk2nu.root"))
+    if not root_files:
+        raise FileNotFoundError(f"No dk2nu files for prefix {f_prefix}")
     for file_path in root_files:
-        n_repeats = 0
+        n_repeats = 1
         x = n_rep
         print(file_path)
         file = uproot.open(file_path)
@@ -285,8 +276,6 @@ def filesout(
         w = makeweightlist(decayid, branches)
         if is_mu:
             par = grandparents(decayid, branches)
-            # print(par, "pions")
-            # print(len(par[par == 321]), "kaons")
 
         for j in range(x):
             n_repeats += 1
@@ -294,10 +283,8 @@ def filesout(
 
             p, _ll, _wf = makeparticlelist(decayid, branches)
 
-            # np.savetxt("file_out_Neutrino_doublestats/nuweights_thetaoa_"+str(theta_oa)+"_decayid" + str(decayid) + "nuweights.txt",wf)
             n = makeraylist(p)
 
-            # wn = np.multiply(w,wf)
             X_array = v
             n_array = n
 
@@ -310,7 +297,6 @@ def filesout(
 
             NDLAr_contained_HNLs = list_duplicates(NDLAr_contained_HNLs2)
 
-            #       print("entry vertices",NDLAr_entry_vertices)
             listNDLArz = NDLAr_entry_vertices
 
             listNDLArE = []
@@ -328,8 +314,8 @@ def filesout(
                 NDLAr_contained_HNLs_k = awk(NDLAr_contained_HNLs)[
                     abs(par[NDLAr_contained_HNLs]) == 321
                 ]
-                listNDLArz_pi = awk(listNDLArz)  # [abs(par)==211]
-                listNDLArz_k = awk(listNDLArz)  # [abs(par)==321]
+                listNDLArz_pi = awk(listNDLArz)
+                listNDLArz_k = awk(listNDLArz)
 
                 for i in NDLAr_contained_HNLs_pi:
                     listNDLArE_pi.append(p[i, 3])
@@ -404,83 +390,76 @@ def filesout(
     else:
         contentEL = str(listNDLArEf)
         contentwL = str(listNDLArwf)
-        # contentEG = str(listNDGArEf)
-        # contentwG = str(listNDGArwf)
+
         contentposL = str(listNDLArposf)
 
         fileoutEL = open(prefix + "_NDLAr_energy_smallND2_" + alt_str + ".txt", "a")
         fileoutwL = open(prefix + "_NDLAr_weights_smallND2_" + alt_str + ".txt", "a")
-        # fileoutEG = open(prefix + "_NDGAr_energy_smallND.txt", "a")
-        # fileoutwG = open(prefix + "_NDGAr_weights_smallND.txt", "a")
+
         fileoutposL = open(prefix + "_NDLAr_entries_smallND_" + alt_str + ".txt", "a")
 
         fileoutEL.write(contentEL)
         fileoutwL.write(contentwL)
-        # fileoutEG.write(contentEG)
-        # fileoutwG.write(contentwG)
+
         fileoutposL.write(contentposL)
 
         fileoutEL.close()
         fileoutwL.close()
-        # fileoutEG.close()
-        # fileoutwG.close()
         fileoutposL.close()
-
-    # binsE=50
-    # histpion,bin_edges=np.histogram(listNDLArEf, bins=binsE,range=(0,10), weights=listNDLArwf)
-    # histop=[]
-    # for i in range(0,len(histpion)):
-    #    histop.append([bin_edges[i]+0.125,histpion[i]])
-
-    # np.savetxt('/unix/dune2/mmacmahon/all_states_out_test_all_angles/histNDLAr_decayid' + str(decayid)+'_offaxis'+str(theta_oa)+'.txt',histop)
 
     return 0
 
 
-thetai = float(sys.argv[1])
-fileid = int(sys.argv[2])
-id_all = eval(sys.argv[3])
-is_rhc = eval(sys.argv[5])
-alt_str = str(sys.argv[6])
-dir_t = str(sys.argv[7])
-
-if is_rhc:
-    print("is_rhc")
-if alt_str != "nom":
-    print(alt_str)
+def process_decay_id(params):
+    decay_id, kwargs = params
+    return filesout(decayid=decay_id, **kwargs)
 
 
-theta = np.array([thetai])  # ,0.0209,0.03136,0.04181,0.05226])
-print(theta)
-decayid = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
+if __name__ == "__main__":
+    # TODO use argparse instead of raw sys.argv
+    thetai = float(sys.argv[1])
+    fileid = int(sys.argv[2])
+    id_all = eval(sys.argv[3])
+    is_rhc = eval(sys.argv[5])
+    alt_str = str(sys.argv[6])
+    in_dir = str(sys.argv[7])
+    out_dir = str(sys.argv[8])
 
-meshes = make_mesh(thetai)
-if id_all:
-    func = partial(
-        filesout,
-        theta_oa=thetai,
-        NDLAr_mesh=meshes,
-        fileid=fileid,
-        is_rhc=is_rhc,
-        alt_str=alt_str,
-        dir=dir_t,
-    )
-    print("theta = ", thetai, "decay = ", decayid)
+    if is_rhc:
+        print("is_rhc")
+    if alt_str != "nom":
+        print(alt_str)
 
-    def process_decay_id(d):
-        return func(decayid=d)
+    theta = np.array([thetai])  # ,0.0209,0.03136,0.04181,0.05226])
+    print(theta)
+    decayid = np.arange(1, 15)
 
-    with Pool(min(len(decayid), os.cpu_count())) as p:
-        p.map(process_decay_id, decayid)
-else:
-    dec_id = int(sys.argv[4])
-    filesout(
-        theta_oa=thetai,
-        NDLAr_mesh=meshes,
-        fileid=fileid,
-        is_rhc=is_rhc,
-        alt_str=alt_str,
-        decayid=dec_id,
-        dir=dir_t,
-    )
-    print("running theta = ", theta, "decay id = ", dec_id)
+    meshes = make_mesh(thetai)
+    if id_all:
+        kwargs = dict(
+            theta_oa=thetai,
+            NDLAr_mesh=meshes,
+            fileid=fileid,
+            is_rhc=is_rhc,
+            alt_str=alt_str,
+            in_dir=in_dir,
+            out_dir=out_dir,
+        )
+        print("theta = ", thetai, "decay = ", decayid)
+        params = [(int(d), kwargs) for d in decayid]
+
+        with Pool(min(len(decayid), os.cpu_count())) as p:
+            p.map(process_decay_id, params)
+    else:
+        dec_id = int(sys.argv[4])
+        filesout(
+            theta_oa=thetai,
+            NDLAr_mesh=meshes,
+            fileid=fileid,
+            is_rhc=is_rhc,
+            alt_str=alt_str,
+            decayid=dec_id,
+            in_dir=in_dir,
+            out_dir=out_dir,
+        )
+        print("running theta = ", theta, "decay id = ", dec_id)
