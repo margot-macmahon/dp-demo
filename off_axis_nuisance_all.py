@@ -1,24 +1,24 @@
+import pickle
+import sys
+from functools import partial
+from multiprocessing import Pool
+
 import numpy as np
 from iminuit import Minuit
-from functools import partial
 
-import pickle
-
-import sys
 from analysis_helper import (
-    makeeventsmeas_fitparams_eff,
+    Chi2Function,
+    addChi2,
+    axis_0_e,
+    axis_1_e,
+    get_error,
     initialize_flux_dir,
     initialize_fluxes,
     initialize_scaling,
     initialize_xsecs,
-    get_error,
-    axis_0_e,
-    axis_1_e,
+    makeeventsmeas_fitparams_eff,
     makepolynomfitfluxes_base,
-    Chi2Function,
-    addChi2,
 )
-from multiprocessing import Pool
 
 
 def compute_contour(args):
