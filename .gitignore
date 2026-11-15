@@ -225,3 +225,5 @@ __marimo__/
 *.pkl
 
 flux_histos/histtot/*/*
+inflated_fluxes
+fit_outputs
