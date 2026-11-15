@@ -11,6 +11,8 @@ import numpy as np
 from scipy import interpolate
 from scipy.ndimage import gaussian_filter
 
+# TODO replace arrays assumed to match order with parameters etc with dicts
+
 
 # --- Resolution model (absolute sigma in GeV) ---
 def sigma(E_true: float) -> float:
@@ -872,11 +874,11 @@ def check_zero_add(flux_it, flux_tot):
 
 
 # generate number of events with given ratio of contributions
-def makeeventsmeas_fitparams_eff(
-    theta, fit_params, pot_share, Ebins, id, smooth
-):  # vectorized version
+def makeeventsmeas_fitparams_eff(theta, fit_params, pot_share, Ebins, id, smooth):
+    # TODO raise FileNotFoundError for missing files like in offaxis_fluxes_loop
+    # TODO assert matching lengths of files/params
+
     p_kl, p_kp, p_km, p_pip, p_pim = fit_params
-    nbins = len(Ebins)
 
     if id == "muon":
         eff = make_interp_eff("muon", Ebins)
@@ -1386,6 +1388,7 @@ class fluxFunction:
         return np.matmul(S, fin_events)
 
 
+# TODO make function which does below instead of repeating for each neutrino flavour and angle
 muon_functions = [fluxFunction("muon", "", theta, True) for theta in [0.0, 0.06272]]
 muon_0, muon_1 = muon_functions
 anti_muon_functions = [

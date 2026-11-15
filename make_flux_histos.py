@@ -2,6 +2,7 @@ import numpy as np
 import os
 import argparse
 
+# each of these process names corresponds to a decay id
 proc_names = np.array(
     [
         "kl_to_nue",
@@ -25,13 +26,16 @@ FILE_EXT = "NDLAr_energy_smallND2.txt"
 
 
 def make_hists(in_dir, out_dir, n_repeats, is_fd=False, is_lots=False, bins_125=False):
+    # TODO should collect missing files then raise FileNotFoundError instead of warning or continuing
+
+    # define detector dimensions for normalisation
     h = 300
     w = 350
     theta = np.array([0.0, 0.06272])
     if is_fd:
         h = 2 * 1900 * 1e2
         w = 1800 * 1e2
-        theta = np.array([0.0])  # ,0.01045,0.0209,0.03136,0.04181,0.05226,0.06272])
+        theta = np.array([0.0])  # far detector can't move, so on-axis only
     if is_lots:
         theta = np.linspace(0.0, 0.06272, 41)
     decayID = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
@@ -42,9 +46,12 @@ def make_hists(in_dir, out_dir, n_repeats, is_fd=False, is_lots=False, bins_125=
         bins = np.arange(0, 125.26, 0.25)
         out_path = f"{out_dir}/histtot/125_GeV/"
 
+    # load in energies and weight files generated from offaxis_fluxes_loop and make into histograms
     for i in theta:
         for j in decayID:
             in_file = f"{in_path}/thetaoa{str(i)}_decayid{str(j)}"
+
+            # attribute neutrinos coming from muon decays (mup_to_numubar and mum_to_numu to pion or kaon parent)
             if j == 11 or j == 12:
                 pi_file = f"{in_file}_pi_"
                 kp_file = f"{in_file}_kp_"
@@ -88,7 +95,7 @@ def make_hists(in_dir, out_dir, n_repeats, is_fd=False, is_lots=False, bins_125=
                         hist_arr,
                     )
 
-            else:
+            else:  # make non-muon histograms
                 path = f"{in_file}_NDLAr_energy_smallND2.txt"
                 if not os.path.isfile(path):
                     print("File" + path + " not found")
