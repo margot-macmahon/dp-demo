@@ -266,7 +266,7 @@ def filesout(
     if not root_files:
         raise FileNotFoundError(f"No dk2nu files for prefix {f_prefix}")
     for file_path in root_files:
-        n_repeats = 1
+        n_repeats = 0
         x = n_rep
         print(file_path)
         file = uproot.open(file_path)
