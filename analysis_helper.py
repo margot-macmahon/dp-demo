@@ -901,9 +901,9 @@ def makeeventsmeas_fitparams_eff(
     flux = {}
     for flux_type in ["numu", "nue", "numubar", "nuebar"]:
         files = (
-            glob.glob(f"{flux_dir}*_to_{flux_type}_*offaxis{theta}.txt")
-            + glob.glob(f"{flux_dir}*_to_{flux_type}_*offaxis{theta}_pi.txt")
-            + glob.glob(f"{flux_dir}*_to_{flux_type}_*offaxis{theta}_kp.txt")
+            sorted(glob.glob(f"{flux_dir}*_to_{flux_type}_*offaxis{theta}.txt"))
+            + sorted(glob.glob(f"{flux_dir}*_to_{flux_type}_*offaxis{theta}_pi.txt"))
+            + sorted(glob.glob(f"{flux_dir}*_to_{flux_type}_*offaxis{theta}_kp.txt"))
         )
         flux[flux_type] = np.sum(
             [
@@ -1057,9 +1057,9 @@ def makeeventsmeas_fitparams_noeff(theta, fit_params, pot_share, Ebins, id):
     flux = {}
     for flux_type in ["numu", "nue", "numubar", "nuebar"]:
         files = (
-            glob.glob(f"{flux_dir}*_to_{flux_type}_*offaxis{theta}.txt")
-            + glob.glob(f"{flux_dir}*_to_{flux_type}_*offaxis{theta}_pi.txt")
-            + glob.glob(f"{flux_dir}*_to_{flux_type}_*offaxis{theta}_kp.txt")
+            sorted(glob.glob(f"{flux_dir}*_to_{flux_type}_*offaxis{theta}.txt"))
+            + sorted(glob.glob(f"{flux_dir}*_to_{flux_type}_*offaxis{theta}_pi.txt"))
+            + sorted(glob.glob(f"{flux_dir}*_to_{flux_type}_*offaxis{theta}_kp.txt"))
         )
         flux[flux_type] = np.sum(
             [
