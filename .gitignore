@@ -225,4 +225,4 @@ __marimo__/
 *.pkl 
 *.txt
 
-flux_histos
+flux_histos/histtot/*/*
