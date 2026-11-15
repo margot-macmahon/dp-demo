@@ -222,7 +222,6 @@ __marimo__/
 
 .DS_Store
 
-*.pkl 
-*.txt
+*.pkl
 
 flux_histos/histtot/*/*

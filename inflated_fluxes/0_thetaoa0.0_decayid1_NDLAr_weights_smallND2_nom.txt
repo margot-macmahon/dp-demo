@@ -1,1 +1,1 @@
-[]
+[][np.float64(1.0), np.float64(1.0)][np.float64(1.0), np.float64(1.0), np.float64(1.4285714285714286)][np.float64(6.25)][np.float64(1.0)]
